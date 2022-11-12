@@ -33,6 +33,8 @@ ForceUrSelf takes following Arguments:
 
 - v: Verbose Output
 
+- o: Specify Output file
+
 - h: Help
 
 # Examples
@@ -42,17 +44,9 @@ python3 ForceUrSelf.py -u admin -pl wordlist.txt --url http://example.com/login.
 ```
 
 ```
-
-```
-
 python3 ForceUrSelf.py -u admin -pl wordlist.txt -p --url http://example.com/login.php
-
 ```
 
 ```
-
 python3 ForceUrSelf.py -u admin -pl wordlist.txt -p -v --url http://example.com/login.php
-
-```
-
 ```

@@ -15,30 +15,30 @@ def print_logo() -> None:
 def parse_args(args) -> list[str]:
     # Method to parse arguments
     RETURN_LIST: list[str] = []
-    print('Parameters: ')
     if args.verbose:
-        print(colored(f'Verbose mode enabled', 'green'))
+        print('\nParameters: ')
+        print(colored(f'Verbose mode enabled. Suppressing output.', 'green'))
         RETURN_LIST.append('verbose')
         
     if args.mode:
-        print(colored(f'Running ForceUrSelf in bruteforce mode', 'green'))
+        print(colored(f'Running ForceUrSelf in bruteforce mode', 'green')) if args.verbose else None
         RETURN_LIST.append(f'mode:::{args.mode}')
         
         if args.username and args.password_list:
-            print(colored(f'Username: {args.username}\nPassword list: {args.password_list}', 'green'))
+            print(colored(f'Username: {args.username}\nPassword list: {args.password_list}', 'green')) if args.verbose else None
             RETURN_LIST.append(f'username:::{args.username}')
             RETURN_LIST.append(f'password_list:::{args.password_list}')
     
     if args.proxy:
-        print(colored(f'Using proxies', 'green'))
+        print(colored(f'Using proxies', 'green')) if args.verbose else None
         RETURN_LIST.append('proxy')
         
     if args.url:
-        print(colored(f'Using URL: {args.url}', 'green'))
+        print(colored(f'Using URL: {args.url}', 'green')) if args.verbose else None
         RETURN_LIST.append(f'url:::{args.url}')
         
     if args.out_file:
-        print(colored(f'Output file: {args.out_file}', 'green'))
+        print(colored(f'Output file: {args.out_file}', 'green')) if args.verbose else None
         RETURN_LIST.append(f'out_file:::{args.out_file}')
 
     return RETURN_LIST
@@ -60,12 +60,12 @@ def get_random_port() -> int:
     # Method to get a random port
     return random.randint(10000, 65535)
 
-def get_ip():
+def get_ip() -> str:
     response = requests.get('https://api64.ipify.org?format=json').json()
     return response["ip"]
 
 
-def get_location():
+def get_location() -> dict:
     ip_address = get_ip()
     response = requests.get(f'https://ipapi.co/{ip_address}/json/').json()
     location_data = {
@@ -76,14 +76,21 @@ def get_location():
     }
     return location_data
 
-def log_output(output):
+def log_output(output) -> None:
     with open(OUT_FILE, 'a') as file:
         file.write(f'{output}\n')
     
-def clear_output():
+def clear_output() -> None:
     with open(OUT_FILE, 'w') as file:
         file.truncate(0)
         
-def set_output_file(out_file):
+def set_output_file(out_file) -> None:
     global OUT_FILE
     OUT_FILE = out_file
+    
+def print_goodbye() -> None:
+    print(colored('ForceUrSelf has finished running!.', 'red'))
+    print(colored('Thanks for using ForceUrSelf!', 'yellow'))
+    print(colored('Made with <3 by @FujiwaraChoki!', 'green'))
+    print(colored('GitHub: https://github.com/FujiwaraChoki/', 'blue'))
+    

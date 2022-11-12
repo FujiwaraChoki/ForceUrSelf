@@ -211,7 +211,8 @@ if __name__ == '__main__':
         # Run main method
         main(parsed_args)
         
-        print(colored('ForceUrSelf has finished running.', 'green'))
     except Exception as err:
         print(colored(f'ForceUrSelf has encountered an error: {err}', 'red'))
+    finally:
+        methods.print_goodbye()
         
