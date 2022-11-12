@@ -27,8 +27,8 @@ def parse_args(args) -> list[str]:
             RETURN_LIST.append(f'password_list:::{args.password_list}')
     
     if args.proxy:
-        print(colored(f'Using proxy: {args.proxy}', 'green'))
-        RETURN_LIST.append(f'proxy:::{args.proxy}')
+        print(colored(f'Using proxyies', 'green'))
+        RETURN_LIST.append(f'proxy')
         
     if args.url:
         print(colored(f'Using URL: {args.url}', 'green'))

