@@ -2,6 +2,7 @@
 Methods file for ForceUrSelf
 '''
 import random
+import requests
 from termcolor import colored
 
 def print_logo() -> None:
@@ -27,8 +28,8 @@ def parse_args(args) -> list[str]:
             RETURN_LIST.append(f'password_list:::{args.password_list}')
     
     if args.proxy:
-        print(colored(f'Using proxyies', 'green'))
-        RETURN_LIST.append(f'proxy')
+        print(colored(f'Using proxies', 'green'))
+        RETURN_LIST.append('proxy')
         
     if args.url:
         print(colored(f'Using URL: {args.url}', 'green'))
@@ -39,7 +40,7 @@ def parse_args(args) -> list[str]:
 def get_tor_path(OS) -> str:
     # Method to get the tor path
     if OS == 'linux':
-        TOR_PATH = '../assets/tor/tor'
+        TOR_PATH = '../assets/Tor/tor/tor'
     elif OS == 'windows':
         TOR_PATH = '..\\assets\\Tor\\tor\\tor.exe'
     return TOR_PATH
@@ -49,3 +50,22 @@ def get_random_user_agent() -> str:
     USER_AGENTS: list[str] = open('../assets/user_agents.txt', 'r').readlines()
     return random.choice(USER_AGENTS)
     
+def get_random_port() -> int:
+    # Method to get a random port
+    return random.randint(10000, 65535)
+
+def get_ip():
+    response = requests.get('https://api64.ipify.org?format=json').json()
+    return response["ip"]
+
+
+def get_location():
+    ip_address = get_ip()
+    response = requests.get(f'https://ipapi.co/{ip_address}/json/').json()
+    location_data = {
+        "ip": ip_address,
+        "city": response.get("city"),
+        "region": response.get("region"),
+        "country": response.get("country_name")
+    }
+    return location_data

