@@ -132,8 +132,6 @@ def main(args: list[str]) -> None:
     License: GNU General Public Licesne V3.0
     OS: Windows & Linux
     '''
-    # Clear the output
-    methods.clear_output()
     
     USERNAME: str = ''
     PASSWORD_LIST: str = ''
@@ -169,6 +167,8 @@ def main(args: list[str]) -> None:
     
     
 if __name__ == '__main__':
+    # Clear the output
+    methods.clear_output()
     try:
         # Print logo
         methods.print_logo()
