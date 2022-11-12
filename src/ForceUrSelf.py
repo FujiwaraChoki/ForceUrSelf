@@ -5,7 +5,7 @@ import argparse
 import io
 import stem.process
 import re
-import time
+import json
 from datetime import datetime
 from platform import platform
 from termcolor import colored
@@ -54,10 +54,17 @@ def set_proxy():
     init_msg_handler = lambda line: print(colored(line, 'yellow')) if re.search('Bootstrapped', line) else False,
     tor_cmd = TOR_PATH
     )
-
-    location = methods.get_location()
-
-    print(colored("[INFO] : TOR IP [%s]: %s %s"%(datetime.now().strftime('%d-%m-%Y %H:%M:%S'), location['ip'], location['country']), 'blue'))
+    
+    
+    # Checking if the proxy is working
+    PROXIES = {
+        'http': 'socks5://127.0.0.1:9050',
+        'https': 'socks5://127.0.0.1:9050'
+    }
+    
+    response = requests.get("http://ip-api.com/json/", proxies=PROXIES)
+    result = json.loads(response.content)
+    print(colored("[INFO] : TOR IP [%s]: %s %s"%(datetime.now().strftime('%d-%m-%Y %H:%M:%S'), result['query'], result['country']), 'blue'))
 
 
 # Bruteforcing method using TOR proxies
@@ -69,17 +76,17 @@ def bruteforce(username: str, password_list: str, URL, proxy: bool, VERBOSE: boo
     # Set the proxy to TOR
     proxies = {}
     if proxy:
-        # Wait for the tor process to start
+        # Kill every app that was previously using port 9050
+        print(colored('[INFO] : Killing old Port Usage...', 'blue'))
         if OS == 'windows':
-            print(colored('[INFO] : Waiting for TOR to start (this will take around 10 minutes)...', 'blue'))
-            time.sleep(1000)
+            os.system('npx kill-port 9050')
         else:
             os.system('sudo killall tor')
         # Define the proxy for the requests
         set_proxy()
         proxies = {
-            'http': f'socks5://127.0.0.1:9050',
-            'https': f'socks5://127.0.0.1:9050' 
+            'http': 'socks5://127.0.0.1:9050',
+            'https': 'socks5://127.0.0.1:9050' 
         }
 
     # Loop over the passwords
