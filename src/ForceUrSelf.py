@@ -2,7 +2,6 @@ import requests
 import os
 import methods
 import argparse
-import io
 import stem.process
 import re
 import json
