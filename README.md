@@ -29,24 +29,30 @@ ForceUrSelf takes following Arguments:
 
 - pl: Passwordlist
 
-- p: Proxy (Tor)
+- p: Use Proxy (Tor)
 
-- t: Threads
-
-- v: Verbose
+- v: Verbose Output
 
 - h: Help
 
 # Examples
 
 ```
-python3 ForceUrSelf.py -u admin -w wordlist.txt -p socks5://
+python3 ForceUrSelf.py -u admin -pl wordlist.txt --url http://example.com/login.php
 ```
 
 ```
-python3 ForceUrSelf.py -u admin -w wordlist.txt -p socks5:// -t 10
+
+```
+
+python3 ForceUrSelf.py -u admin -pl wordlist.txt -p --url http://example.com/login.php
+
 ```
 
 ```
-python3 ForceUrSelf.py -u admin -w wordlist.txt -p socks5:// -t 10 -v
+
+python3 ForceUrSelf.py -u admin -pl wordlist.txt -p -v --url http://example.com/login.php
+
+```
+
 ```

@@ -44,17 +44,25 @@ ERROR_MSGS = [
     'inkorrekt'
 ]
 
-def set_proxy():
+def set_proxy(verbosity: bool = False) -> None:
     SOCKS_PORT = 9050
     TOR_PATH = methods.get_tor_path(OS)
-    tor_process = stem.process.launch_tor_with_config(
-    config = {
-        'SocksPort': str(SOCKS_PORT),
-    },
-    init_msg_handler = lambda line: print(colored(line, 'yellow')) if re.search('Bootstrapped', line) else False,
-    tor_cmd = TOR_PATH
-    )
-    
+    if verbosity:
+        tor_process = stem.process.launch_tor_with_config(
+            config = {
+                'SocksPort': str(SOCKS_PORT),
+            },
+            init_msg_handler = lambda line: print(colored(line, 'yellow')) if re.search('Bootstrapped', line) else False,
+            tor_cmd = TOR_PATH
+        )
+    else:
+        tor_process = stem.process.launch_tor_with_config(
+            config = {
+                'SocksPort': str(SOCKS_PORT),
+            },
+            tor_cmd = TOR_PATH
+        )
+        print(colored('[INFO] : Supressing Tor Output...', 'blue'))
     
     # Checking if the proxy is working
     PROXIES = {

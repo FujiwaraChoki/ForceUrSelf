@@ -48,7 +48,7 @@ def get_tor_path(OS) -> str:
 def get_random_user_agent() -> str:
     # Method to get a random user agent
     USER_AGENTS: list[str] = open('../assets/user_agents.txt', 'r').readlines()
-    return random.choice(USER_AGENTS)
+    return random.choice(USER_AGENTS).strip()
     
 def get_random_port() -> int:
     # Method to get a random port
