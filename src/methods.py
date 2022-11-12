@@ -5,6 +5,8 @@ import random
 import requests
 from termcolor import colored
 
+OUT_FILE: str = '../output.txt'
+
 def print_logo() -> None:
     # Method to print the logo
     with open('../assets/logo.txt', 'r') as logo:
@@ -34,6 +36,10 @@ def parse_args(args) -> list[str]:
     if args.url:
         print(colored(f'Using URL: {args.url}', 'green'))
         RETURN_LIST.append(f'url:::{args.url}')
+        
+    if args.out_file:
+        print(colored(f'Output file: {args.out_file}', 'green'))
+        RETURN_LIST.append(f'out_file:::{args.out_file}')
 
     return RETURN_LIST
 
@@ -69,3 +75,15 @@ def get_location():
         "country": response.get("country_name")
     }
     return location_data
+
+def log_output(output):
+    with open(OUT_FILE, 'a') as file:
+        file.write(f'{output}\n')
+    
+def clear_output():
+    with open(OUT_FILE, 'w') as file:
+        file.truncate(0)
+        
+def set_output_file(out_file):
+    global OUT_FILE
+    OUT_FILE = out_file
